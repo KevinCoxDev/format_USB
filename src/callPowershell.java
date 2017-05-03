@@ -1,7 +1,6 @@
 import javax.swing.*;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.awt.*;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -9,6 +8,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+
+import static java.awt.Color.*;
 
 public class callPowershell {
 
@@ -32,12 +33,10 @@ public class callPowershell {
         String st = new String(dir);
         st = new StringBuffer(st).insert(2, "\\").toString();
         String string=("powershell.exe"+ "\\"+" \""+st+"\\"+"scripts\\"+"test2.ps1\"");
-        System.out.println(dir);
-        String command = "powershell.exe  \"C:\\test2.ps1\"";
         Process ps = Runtime.getRuntime().exec(string);
         ps.getOutputStream().close();
         String line;
-        System.out.println("Output:");
+        //select_file();
         BufferedReader stdout = new BufferedReader(new InputStreamReader(
                 ps.getInputStream()));
         while ((line = stdout.readLine()) != null) {
@@ -46,10 +45,17 @@ public class callPowershell {
                 String segments[] = line.split(" ");
                 String document = segments[segments.length - 1];
                 System.out.println(document);
+                progressWindow(document,true);
+            }
+            else if(line.contains("Dest -")){
+                String segments[] = line.split(" ");
+                String document = segments[segments.length - 1];
+                System.out.println(document);
+                progressWindow(document, false);
             }
 
             String error = line;
-            if(error.contains("ERROR 3") || error.contains("ERROR 2") || error.contains("The parameter is incorrect")){
+            if(error.contains("ERROR") || error.contains("ERROR") || error.contains("The parameter is incorrect")){
                 System.out.println("ERROR: UNABLE TO FIND THE DESTINATION /n Please ensure no disks are disconnected during the process.Reconnect the disk and try again");
                 errorCheck();
             }
@@ -62,8 +68,35 @@ public class callPowershell {
         JOptionPane.showMessageDialog(null, "There has been an issue with one of your drives \nThis error message may reoccur on the same drive \n Process will attempt to continue on other drives", "alert", JOptionPane.WARNING_MESSAGE);
     }
 
-    public static void progressWindow(){
+    public static void progressWindow(String input, Boolean check){
+        Color color = gray;
+        if(check){
+            color = green;
+        }
+        else if(!check){
+            color = red;
+        }
 
+        if(input.contains("Q")){
+            display.drive1.setText("Q:");
+            display.drive1.setBackground(color);
+        }
+        else if(input.contains("R")){
+            display.drive2.setText("R:");
+            display.drive2.setBackground(color);
+        }
+        else if(input.contains("S")){
+            display.drive3.setText("S:");
+            display.drive3.setBackground(color);
+        }
+        else if(input.contains("T")){
+            display.drive4.setText("T:");
+            display.drive4.setBackground(color);
+        }
+        else if(input.contains("U")){
+            display.drive5.setText("U:");
+            display.drive5.setBackground(color);
+        }
 
     }
 
@@ -99,6 +132,12 @@ public class callPowershell {
         String path = key;
         System.out.print(path);
         System.out.print(input);
+
+        try(  PrintWriter out = new PrintWriter( "scripts/path.txt" )  ){
+            out.println( path );
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
 
 
         return path;
